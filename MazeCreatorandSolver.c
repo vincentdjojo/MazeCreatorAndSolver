@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,20 +10,20 @@ void DispMaze( char *maze, int w, int h ) {  //function  for displaying  the mes
       for(i = 0; i < w; i++) {
         if ( i == ( 1 ) && j == ( 1 ) )
         {
-          printf ( "S" );
+          printf ( "S" );//Display the S
         }
         else if ( i == ( w - 2 ) && j == (  h - 2 ) )
         {
-          printf ( "G" );
+          printf ( "G" );//Display the G
         }
         else {
           switch(maze[j * w + i]) {
-            case 1:  printf("#");  break;
+            case 1:  printf("#");  break; //Display the wall
             case 2:
-              printf(".");
+              printf(".");//Display the solution path
               break;
             default:
-              printf(" ");  break;
+              printf(" ");  break;//Display a path
           }
         }
       }
@@ -33,90 +31,87 @@ void DispMaze( char *maze, int w, int h ) {  //function  for displaying  the mes
    }
 }
 
-void imperfect ( char *maze, int w, int h )//make the maze imperfect
+int imperfect3 ( char *maze, int w, int h )
 {
-  char* temp;
-  temp = (char*)malloc(w * h * sizeof(char));
-  for(int j = 0; j < h; j++) {
-     for(int i = 0; i < w; i++) {
-        temp[j * w + i] = maze[j * w + i];
+   int deadEnds;
+   int index = 0;
+   int counter;
+   int destroy = 0;
+
+   //get dead ends in this loop
+   for (int j = h/2; j < h - 2; j++)
+   {
+     for (int i = i/2; i < w -2; i++)
+     {
+       counter = 0;
+       if ( maze[j * w + i] == 1)//if a wall then continue
+       {
+         continue;
+       }
+
+       if( maze[j * w + i] == 0 )//if not a wall check if it is a dead end
+       {
+         counter = 0;
+         destroy = 0;
+         if ( maze[(j + 1) * w + i] != 1)//check if the surroundings of the current location is a wall or not, if space add 1.
+         {
+           counter = counter + 1;
+           destroy = 1;
+         }
+
+         if ( maze[(j - 1) * w + i ] != 1)//check if the surroundings of the current location is a wall or not, if space add 1.
+         {
+           counter = counter + 1;
+           destroy = 2;
+         }
+
+         if ( maze[j * w + (i + 1) ] != 1)//check if the surroundings of the current location is a wall or not, if space add 1.
+         {
+           counter = counter + 1;
+           destroy = 3;
+         }
+         if ( maze[j * w + (i - 1)] != 1)//check if the surroundings of the current location is a wall or not, if space add 1.
+         {
+           counter = counter + 1;
+           destroy = 4;
+         }
+
+
+
+         if ( counter == 1 )//if counter is only 1 then it is a deadend because a dead end only has one space and 3 walls
+         {
+           //calculate the wall that needs to be destroyed to make the maze imperfect
+           if ( destroy == 1 )
+           {
+            deadEnds = (j - 1) * w + i;
+           }
+           else if ( destroy == 2 )
+           {
+             deadEnds = (j + 1) * w + i;
+           }
+           else if ( destroy == 3 )
+           {
+             deadEnds  = j * w + (i - 1);
+           }
+           else if ( destroy == 4 )
+           {
+             deadEnds = j * w + (i + 1);
+           }
+         }
+         else
+         {
+           continue;//if not deadend continue to look for a deadend
+         }
+       }
      }
    }
-  int* dewall;
-//=====================
-  int choice, counter;
-  int i, j,l=0;
-  int dx, dy;
-  int forward;
-
-  /* Remove the entry and exit. */
-  temp[0 * w + 1] = 1;
-  temp[(h - 1) * w + (w - 2)] = 1;
-  int x = 1, y = 1, done = 0;
-  forward = 1;
-  choice = 0;
-  counter = 0;
-  i = 1;
-  j = 1;
-  while(i != w - 2 || j != h - 2) {//traverse through the maze. Similar to Solve_Maze
-    dx = 0; dy = 0;
-    switch(choice) {
-    case 0:  dx = 1;  break;
-    case 1:  dy = 1;  break;
-    case 2:  dx = -1; break;
-    default: dy = -1; break;
-    }
-    if( (forward  && temp[(j + dy) * w + (i + dx)] == 0)
-       || (!forward && temp[(j + dy) * w + (i + dx)] == 2)) { //If traversable then do the following
-       temp[j * w + i] = forward ? 2 : 1;
-
-       if ( forward != 1 ) //If next location is path
-       {
-         if ( j < w-2 && i < h-2 && maze [ j+1 * w + i] == 1 &&  maze [ j * w + i+1] ==1 && done == 0)
-         {//Break the wall once
-           maze [ j * w + i + 1] = 0;
-           done = 1;
-         }
-         else if ( j < w-2 && i < h-2 && maze [ j * w + i+1] == 1 &&  maze [ j+1 * w + i] ==1 && done == 0 )
-         {//break the wall once
-           maze [ j + 1 * w + i] = 0;
-           done = 1;
-         }
-       }
-
-
-       i += dx;
-       j += dy;
-       forward = 1;
-       counter = 0;
-       choice = 0;
-    } else {
-       choice = (choice + 1) % 4;
-       counter += 1;
-       if(counter > 3) {
-          forward = 0;
-          counter = 0;
-       }
-    }
-  }
-  printf ( "\n" );
-  for ( int k = 0; k < l; k++ )
-  {
-    maze[dewall[k]] = 0;
-  }
-
-  temp[0 * w + 1] = 1;
-  temp[(h - 1) * w + (w - 2)] = 1;
-  if ( done == 0 )
-  {
-    printf ( "\nMaze can't be made imperfect this time\n" );
-  }
-  maze[x * w + y] = 0;
+    return deadEnds;//return the location and delete the wall
 }
+
 
 void filePrint ( char *maze, int w, int h )
 {
-     FILE *cfPtr;
+     FILE *cfPtr;//delcare filePtr
 
     if ( ( cfPtr = fopen ( "maze.dat", "w" ) ) == NULL )
     {
@@ -125,38 +120,36 @@ void filePrint ( char *maze, int w, int h )
     else
     {
        int i, j,k=0;
-       for(j = 0; j < h; j++) {
+       for(j = 0; j < h; j++) {//Loop through the file
           for(i = 0; i < w; i++) {
             if ( i == ( 1 ) && j == ( 1 ) )
             {
-              fprintf ( cfPtr, "S" );
+              fprintf ( cfPtr, "S" ); //Visual effect to show S in the file
             }
             else if ( i == ( w - 2 ) && j == (  h - 2 ) )
             {
-              fprintf ( cfPtr, "G" );
+              fprintf ( cfPtr, "G" ); //Visual effect to show G in the file
             }
             else {
               switch(maze[j * w + i]) {
-                case 1:  fprintf( cfPtr, "#");  break;
+                case 1:  fprintf( cfPtr, "#");  break; //Print the walls into the file
                 case 2:
-
                   fprintf( cfPtr, ".");
                   break;
                 default:
-                  fprintf( cfPtr, " ");  break;
+                  fprintf( cfPtr, " ");  break; //Print the spaces into the file
               }
             }
           }
-          fprintf(cfPtr, "\n");
+          fprintf(cfPtr, "\n");//Print the spsace into te file
         }
-        fclose (cfPtr);
+        fclose (cfPtr);//Close the file once everything is read
      }
 }
 
 void fileRead ( char *maze, int w, int h )
 {
-    FILE *cfPtr;
-
+    FILE *cfPtr;//Declar filePtr
 
     if ( ( cfPtr = fopen ( "maze.dat", "r" ) ) == NULL )
     {
@@ -164,13 +157,6 @@ void fileRead ( char *maze, int w, int h )
     }
     else
     {
-      char** grid=(char*)malloc(sizeof(char)*h); //creating dynamic 2d array for storing the maze from the text file
-         for(int i=0;i<h;i++)
-          {
-              grid[i]=(char*)malloc(sizeof(char)*w);
-          }
-
-
           for(int i=0;i<h;i++)    //saving maze in a grid
           {
 
@@ -186,24 +172,23 @@ void fileRead ( char *maze, int w, int h )
       }
 }
 
-void DispMazeValue( char *maze, int w, int h ) {  //function  for displaying  the message having three parameters maze ,width and height
-
+void DispMazeValue( char *maze, int w, int h ) {  //function  for displaying  the message having three parameters maze, width and height
+                                                  //You can use this to check the values of the maze
    int i, j,k=0;
    for(j = 0; j < h; j++) {
       for(i = 0; i < w; i++) {
           printf("%d",maze[j * w + i]);
-
       }
           printf("\n");
     }
 
  }
 
-  void changeToValue( char *maze, int w, int h ) {  //function  for displaying  the message having three parameters maze ,width and height
+  void changeToValue( char *maze, int w, int h ) {  //funciton to convert symbols in the .dat file to values to be used by the solver
 
      int i, j,k=0;
      int count=0;
-     for(j = 0; j < ( h * w ); j++) {
+     for(j = 0; j < ( h * w ); j++) { //loop thorugh maze array and replace each char with a corresponding value
 
          if ( maze [j] == '\n')
          {
@@ -217,9 +202,8 @@ void DispMazeValue( char *maze, int w, int h ) {  //function  for displaying  th
          {
            maze [j] = 0;
          }
-         //count++;
      }
-     maze[0 * w + 1] = 1;
+     maze[0 * w + 1] = 1; //Remember to close the start and goal
      maze[(h - 1) * w + (w - 2)] = 1;
 
    }
@@ -233,7 +217,7 @@ void cutMaze(char *maze, int w, int h, int i, int j) {
 
    choice = rand() % 4;//random the direction
    counter = 0;
-   while(counter < 4) {//The maze consists of 4 by 4 paths, here we check the surroundings to choose the direction of the current path
+   while(counter < 4) {//The maze consists of 2 by 2 paths, here we check the surroundings to choose the direction of the current path
       dx = 0; dy = 0;
       switch(choice) {
         case 0:  dx = 1;
@@ -293,7 +277,7 @@ void MadeMaze(char *maze, int w, int h) {
 }
 
 /* Solve the maze. */
-void Solve_Maze(char *maze, int w, int h) {
+void Solve_Maze(char *maze, int w, int h) { //DFS solver
 
    int choice, counter;
    int i, j;
@@ -311,21 +295,21 @@ void Solve_Maze(char *maze, int w, int h) {
    j = 1;
    while(i != w - 2 || j != h - 2) {
       dx = 0; dy = 0;
-      switch(choice) {
+      switch(choice) {//Traverse through the maze
         case 0:  dx = 1;  break;
         case 1:  dy = 1;  break;
         case 2:  dx = -1; break;
         default: dy = -1; break;
       }
-      if(   (forward  && maze[(j + dy) * w + (i + dx)] == 0)
-         || (!forward && maze[(j + dy) * w + (i + dx)] == 2)) {
+      if( (forward  && maze[(j + dy) * w + (i + dx)] == 0)|| (!forward && maze[(j + dy) * w + (i + dx)] == 2) ) {
+         //if the current location can traverse to the next meaning there's a wall or a discovered path then traverse
          maze[j * w + i] = forward ? 2 : 3;
          i += dx;
          j += dy;
          forward = 1;
          counter = 0;
          choice = 0;
-      } else {
+      } else { //Otherwise you cant travel there and try another direction
          choice = (choice + 1) % 4;
          counter += 1;
          if(counter > 3) {
@@ -341,13 +325,12 @@ void Solve_Maze(char *maze, int w, int h) {
 }
 
 int main() {
-
    int w, h;
    char *maze;
    char *readMaze;
-
+   int *deadEnds;
    printf("Maze \n");
-   printf("usage: maze <w> <h> [s]\n");
+   printf("usage: maze <w> <h>\n");
    scanf ( "%d %d", &w, &h );
 
    w = w * 2 + 3;
@@ -373,8 +356,7 @@ int main() {
    MadeMaze(maze, w, h);//generate a maze
    printf ( "The generated maze:\n" );
 
-   //DispMaze ( maze, w, h ); //display the perfect maze
-   imperfect ( maze, w, h );//make generated maze imperfect
+   maze[ imperfect3 ( maze, w, h ) ] = 0;//make generated maze imperfect
    DispMaze ( maze, w, h );//display the generated imperfect maze before solving
    filePrint ( maze, w, h );//print maze into .dat file
 
